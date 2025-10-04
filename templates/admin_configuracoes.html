@@ -1,0 +1,463 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Configurações do Sistema{% endblock %}
+
+{% block breadcrumb %}<strong>Configurações</strong> / Sistema{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+  <div class="nav-section-title">Principal</div>
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+    <span class="nav-item-icon">📊</span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('admin_faturamento') }}" class="nav-item">
+    <span class="nav-item-icon">💰</span>
+    <span>Faturamento</span>
+  </a>
+  <a href="{{ url_for('admin_relatorio_fechamento') }}" class="nav-item">
+    <span class="nav-item-icon">📈</span>
+    <span>Relatórios</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">Gestão</div>
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+    <span class="nav-item-icon">👨‍⚕️</span>
+    <span>Cadastrar Médico</span>
+  </a>
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+    <span class="nav-item-icon">🧑</span>
+    <span>Cadastrar Paciente</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">Sistema</div>
+  <a href="{{ url_for('admin_configuracoes') }}" class="nav-item active">
+    <span class="nav-item-icon">⚙️</span>
+    <span>Configurações</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button type="submit" form="configForm" class="btn">
+  💾 Salvar Configurações
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">⚙️ Configurações do Sistema</h1>
+  <p class="page-subtitle">Gerencie as configurações gerais do MedConnect</p>
+</div>
+
+<style>
+  .config-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .config-card {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .config-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .config-card-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .config-card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .config-card-subtitle {
+    color: #64748b;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .label-description {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 400;
+    margin-top: 4px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #0891b2;
+    box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+  }
+
+  .switch-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .switch-label {
+    flex: 1;
+  }
+
+  .switch-label-title {
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .switch-label-desc {
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 28px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+
+  input:checked + .slider {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(24px);
+  }
+
+  @media (max-width: 768px) {
+    .config-card {
+      padding: 20px;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .config-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .config-card-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    .config-card-title {
+      font-size: 18px;
+    }
+
+    .switch-group {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .switch {
+      align-self: flex-end;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .config-card {
+      padding: 16px;
+    }
+
+    .config-card-header {
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+    }
+
+    .config-card-title {
+      font-size: 16px;
+    }
+
+    .config-card-subtitle {
+      font-size: 13px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+    }
+
+    input, select {
+      font-size: 14px;
+      padding: 12px 14px;
+    }
+
+    .switch-label-title {
+      font-size: 14px;
+    }
+
+    .switch-label-desc {
+      font-size: 12px;
+    }
+  }
+</style>
+
+<form id="configForm" method="POST">
+  <div class="config-grid">
+    <div class="config-card">
+      <div class="config-card-header">
+        <div class="config-card-icon">🏥</div>
+        <div>
+          <div class="config-card-title">Informações da Plataforma</div>
+          <div class="config-card-subtitle">Dados gerais do sistema</div>
+        </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome da Plataforma</label>
+          <input type="text" name="platform_name" value="{{ config.platform_name or 'MedConnect' }}" placeholder="MedConnect" />
+        </div>
+        <div class="form-group">
+          <label>E-mail de Suporte</label>
+          <input type="email" name="support_email" value="{{ config.support_email or 'suporte@medconnect.com' }}" placeholder="suporte@medconnect.com" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Telefone de Suporte</label>
+        <input type="tel" name="support_phone" value="{{ config.support_phone or '(11) 3000-0000' }}" placeholder="(11) 3000-0000" />
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="config-card-header">
+        <div class="config-card-icon">💰</div>
+        <div>
+          <div class="config-card-title">Faturamento Padrão</div>
+          <div class="config-card-subtitle">Valores padrão para novos médicos</div>
+        </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Valor da Consulta (R$)
+            <div class="label-description">Valor padrão para novos médicos</div>
+          </label>
+          <input type="number" step="0.01" name="default_consultation_value" value="{{ config.default_consultation_value or '150.00' }}" placeholder="150.00" />
+        </div>
+        <div class="form-group">
+          <label>% do Médico
+            <div class="label-description">Porcentagem destinada ao médico</div>
+          </label>
+          <input type="number" step="0.01" name="default_doctor_percentage" value="{{ config.default_doctor_percentage or '70.00' }}" placeholder="70.00" />
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>% do Administrador
+          <div class="label-description">Porcentagem destinada ao admin</div>
+        </label>
+        <input type="number" step="0.01" name="default_admin_percentage" value="{{ config.default_admin_percentage or '30.00' }}" placeholder="30.00" />
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="config-card-header">
+        <div class="config-card-icon">🔐</div>
+        <div>
+          <div class="config-card-title">Segurança e Privacidade</div>
+          <div class="config-card-subtitle">Configurações de segurança do sistema</div>
+        </div>
+      </div>
+      
+      <div class="switch-group">
+        <div class="switch-label">
+          <div class="switch-label-title">Exigir senha forte</div>
+          <div class="switch-label-desc">Senhas com mínimo de 8 caracteres, letras e números</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="require_strong_password" {{ 'checked' if config.require_strong_password else '' }}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-group">
+        <div class="switch-label">
+          <div class="switch-label-title">Autenticação de 2 fatores</div>
+          <div class="switch-label-desc">Requer código adicional no login (em breve)</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="two_factor_auth" {{ 'checked' if config.two_factor_auth else '' }} disabled>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-group">
+        <div class="switch-label">
+          <div class="switch-label-title">Log de atividades</div>
+          <div class="switch-label-desc">Registra todas as ações dos usuários</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="activity_log" {{ 'checked' if config.activity_log else '' }}>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="config-card-header">
+        <div class="config-card-icon">🎥</div>
+        <div>
+          <div class="config-card-title">Configurações de Vídeo</div>
+          <div class="config-card-subtitle">Parâmetros para videochamadas</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Servidor STUN
+          <div class="label-description">Servidor para estabelecer conexões P2P</div>
+        </label>
+        <input type="text" name="stun_server" value="{{ config.stun_server or 'stun:stun.l.google.com:19302' }}" placeholder="stun:stun.l.google.com:19302" />
+      </div>
+
+      <div class="switch-group">
+        <div class="switch-label">
+          <div class="switch-label-title">Gravação de consultas</div>
+          <div class="switch-label-desc">Permite gravar videochamadas (em breve)</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="allow_recording" {{ 'checked' if config.allow_recording else '' }} disabled>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>Qualidade de vídeo padrão</label>
+        <select name="default_video_quality">
+          <option value="high" {{ 'selected' if config.default_video_quality == 'high' else '' }}>Alta (HD 720p)</option>
+          <option value="medium" {{ 'selected' if config.default_video_quality == 'medium' else '' }}>Média (SD 480p)</option>
+          <option value="low" {{ 'selected' if config.default_video_quality == 'low' else '' }}>Baixa (360p)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <div class="config-card-header">
+        <div class="config-card-icon">📧</div>
+        <div>
+          <div class="config-card-title">Notificações</div>
+          <div class="config-card-subtitle">Configurar envio de e-mails e alertas</div>
+        </div>
+      </div>
+      
+      <div class="switch-group">
+        <div class="switch-label">
+          <div class="switch-label-title">Lembrete de consultas</div>
+          <div class="switch-label-desc">Envia e-mail 24h antes da consulta</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="consultation_reminder" {{ 'checked' if config.consultation_reminder else '' }}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-group">
+        <div class="switch-label">
+          <div class="switch-label-title">Notificações push</div>
+          <div class="switch-label-desc">Notificações no navegador (em breve)</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" name="push_notifications" {{ 'checked' if config.push_notifications else '' }} disabled>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+  Desenvolvido por <strong style="color: #0891b2; font-weight: 600;">João Layon</strong> • Design UX/DX Premium
+</div>
+{% endblock %}

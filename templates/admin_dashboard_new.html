@@ -1,0 +1,830 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block breadcrumb %}<strong>Dashboard</strong> / Administração{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+  <div class="nav-section-title">Principal</div>
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-item active">
+    <span class="nav-item-icon">📊</span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('admin_faturamento') }}" class="nav-item">
+    <span class="nav-item-icon">💰</span>
+    <span>Faturamento</span>
+  </a>
+  <a href="{{ url_for('admin_relatorio_fechamento') }}" class="nav-item">
+    <span class="nav-item-icon">📈</span>
+    <span>Relatórios</span>
+  </a>
+  <a href="{{ url_for('admin_fechamentos') }}" class="nav-item">
+    <span class="nav-item-icon">📅</span>
+    <span>Fechamentos</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">Gestão</div>
+  <a href="#" class="nav-item" onclick="document.getElementById('modalMedico').style.display='flex'; return false;">
+    <span class="nav-item-icon">👨‍⚕️</span>
+    <span>Cadastrar Médico</span>
+  </a>
+  <a href="#" class="nav-item" onclick="document.getElementById('modalPaciente').style.display='flex'; return false;">
+    <span class="nav-item-icon">🧑</span>
+    <span>Cadastrar Paciente</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">Sistema</div>
+  <a href="{{ url_for('admin_configuracoes') }}" class="nav-item">
+    <span class="nav-item-icon">⚙️</span>
+    <span>Configurações</span>
+  </a>
+  <a href="#" class="nav-item" onclick="document.getElementById('modalZerarBanco').style.display='flex'; return false;" style="color: #dc2626;">
+    <span class="nav-item-icon">🗑️</span>
+    <span>Zerar Banco</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="#" onclick="document.getElementById('modalMedico').style.display='flex'; return false;" class="btn">
+  ➕ Novo Médico
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Dashboard Administrativo</h1>
+  <p class="page-subtitle">Gestão completa do sistema MedConnect</p>
+</div>
+
+<div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 3px solid #dc2626; border-radius: 20px; padding: 24px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);">
+  <div class="zerar-banco-container">
+    <div class="zerar-banco-content">
+      <h2 style="color: #dc2626; font-size: 24px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+        🗑️ Zerar Banco de Dados
+      </h2>
+      <p style="color: #991b1b; font-size: 15px; margin: 0;">
+        ⚠️ <strong>ATENÇÃO:</strong> Remove todos os dados do sistema (médicos, pacientes, consultas). Esta ação é IRREVERSÍVEL!
+      </p>
+    </div>
+    <button onclick="document.getElementById('modalZerarBanco').style.display='flex'" class="zerar-banco-button">
+      🗑️ ZERAR BANCO DE DADOS
+    </button>
+  </div>
+</div>
+
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  }
+
+  .stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .stat-card-title {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-card-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-label {
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  .section {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+  }
+
+  .section-title {
+    color: #0f172a;
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    background: #f8fafc;
+    color: #0891b2;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  tbody tr {
+    transition: background 0.2s;
+  }
+
+  tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .modal-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #64748b;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover {
+    background: #f1f5f9;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #0891b2;
+    box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+  }
+
+  .responsive-table {
+    width: 100%;
+  }
+
+  .responsive-table table {
+    width: 100%;
+  }
+
+  .responsive-table .data-cards {
+    display: none;
+  }
+
+  .data-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+  }
+
+  .data-card:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .data-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .data-card-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .data-card-label {
+    color: #0891b2;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    width: 40%;
+  }
+
+  .data-card-value {
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .zerar-banco-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .zerar-banco-content {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .zerar-banco-button {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+
+  .zerar-banco-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+  }
+
+  @media (min-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+    }
+
+    .stat-card {
+      padding: 28px;
+    }
+
+    .stat-card-value {
+      font-size: 40px;
+    }
+  }
+
+  @media (min-width: 993px) and (max-width: 1199px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .section {
+      padding: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+
+    .stat-card-value {
+      font-size: 32px;
+    }
+
+    .section {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .responsive-table table {
+      display: none;
+    }
+
+    .responsive-table .data-cards {
+      display: block;
+    }
+
+    .modal {
+      padding: 16px;
+    }
+
+    .modal-content {
+      padding: 24px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .zerar-banco-container {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+    }
+
+    .zerar-banco-content {
+      min-width: 100%;
+    }
+
+    .zerar-banco-button {
+      width: 100%;
+      white-space: normal;
+      text-align: center;
+      padding: 14px 24px;
+      font-size: 15px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid {
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+
+    .stat-card-value {
+      font-size: 28px;
+    }
+
+    .stat-card-title {
+      font-size: 12px;
+    }
+
+    .section {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      margin-bottom: 12px;
+    }
+
+    .data-card {
+      padding: 14px;
+    }
+
+    .data-card-label {
+      font-size: 11px;
+    }
+
+    .data-card-value {
+      font-size: 13px;
+    }
+
+    .modal {
+      padding: 12px;
+    }
+
+    .modal-title {
+      font-size: 19px;
+    }
+
+    .zerar-banco-content h2 {
+      font-size: 20px !important;
+    }
+
+    .zerar-banco-content p {
+      font-size: 14px !important;
+    }
+
+    .zerar-banco-button {
+      font-size: 14px;
+      padding: 12px 20px;
+    }
+  }
+</style>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Médicos</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #0891b2, #06b6d4);">👨‍⚕️</div>
+    </div>
+    <div class="stat-card-value">{{ medicos|length }}</div>
+    <div class="stat-card-label">Cadastrados</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Pacientes</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🧑</div>
+    </div>
+    <div class="stat-card-value">{{ pacientes|length }}</div>
+    <div class="stat-card-label">Cadastrados</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">Sistema</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">✅</div>
+    </div>
+    <div class="stat-card-value">100%</div>
+    <div class="stat-card-label">Operacional</div>
+  </div>
+
+  <div class="stat-card" style="cursor: pointer; border: 2px solid #dc2626;" onclick="document.getElementById('modalZerarBanco').style.display='flex'">
+    <div class="stat-card-header">
+      <div class="stat-card-title" style="color: #dc2626;">Zerar Banco</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #dc2626, #991b1b);">🗑️</div>
+    </div>
+    <div class="stat-card-value" style="font-size: 20px; color: #dc2626;">Limpar</div>
+    <div class="stat-card-label" style="color: #dc2626;">Clique para zerar dados</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">👨‍⚕️ Médicos Cadastrados</h2>
+  <div class="responsive-table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 60px;"></th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>CRM</th>
+          <th>Especialidade</th>
+          <th style="width: 150px;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for medico in medicos %}
+        <tr>
+          <td>
+            <div style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #0891b2, #06b6d4); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700;">
+              {% if medico.profile_photo %}
+                <img src="{{ url_for('static', filename='uploads/profile_photos/' + medico.profile_photo) }}" alt="Foto de {{ medico.nome }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                {{ medico.nome[0] if medico.nome else 'M' }}
+              {% endif %}
+            </div>
+          </td>
+          <td><strong>{{ medico.nome }}</strong></td>
+          <td>{{ medico.email }}</td>
+          <td>{{ medico.crm or '-' }}</td>
+          <td>{{ medico.especialidade or '-' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin_resetar_senha', user_id=medico.user_id) }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja resetar a senha de {{ medico.nome }} para 123456?');">
+              <button type="submit" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                🔒 Resetar Senha
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="data-cards">
+      {% for medico in medicos %}
+      <div class="data-card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9;">
+          <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #0891b2, #06b6d4); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700; flex-shrink: 0;">
+            {% if medico.profile_photo %}
+              <img src="{{ url_for('static', filename='uploads/profile_photos/' + medico.profile_photo) }}" alt="Foto de {{ medico.nome }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              {{ medico.nome[0] if medico.nome else 'M' }}
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #0f172a; margin-bottom: 4px;">{{ medico.nome }}</div>
+            <div style="color: #64748b; font-size: 14px;">{{ medico.especialidade or 'Médico' }}</div>
+          </div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Email</div>
+          <div class="data-card-value">{{ medico.email }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">CRM</div>
+          <div class="data-card-value">{{ medico.crm or '-' }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Especialidade</div>
+          <div class="data-card-value">{{ medico.especialidade or '-' }}</div>
+        </div>
+        <div class="data-card-row" style="border-bottom: none; padding-top: 16px; margin-top: 8px;">
+          <form method="POST" action="{{ url_for('admin_resetar_senha', user_id=medico.user_id) }}" style="width: 100%;" onsubmit="return confirm('Tem certeza que deseja resetar a senha de {{ medico.nome }} para 123456?');">
+            <button type="submit" style="width: 100%; background: linear-gradient(135deg, #dc2626, #ef4444); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s;">
+              🔒 Resetar Senha para 123456
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">🧑 Pacientes Cadastrados</h2>
+  <div class="responsive-table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 60px;"></th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Data Nasc.</th>
+          <th>Telefone</th>
+          <th>Médico</th>
+          <th style="width: 150px;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for paciente in pacientes %}
+        <tr>
+          <td>
+            <div style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 700;">
+              {% if paciente.profile_photo %}
+                <img src="{{ url_for('static', filename='uploads/profile_photos/' + paciente.profile_photo) }}" alt="Foto de {{ paciente.nome }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                {{ paciente.nome[0] if paciente.nome else 'P' }}
+              {% endif %}
+            </div>
+          </td>
+          <td><strong>{{ paciente.nome }}</strong></td>
+          <td>{{ paciente.email }}</td>
+          <td>{{ paciente.data_nascimento or '-' }}</td>
+          <td>{{ paciente.telefone or '-' }}</td>
+          <td>{{ paciente.medico_nome or 'Não atribuído' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin_resetar_senha', user_id=paciente.user_id) }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja resetar a senha de {{ paciente.nome }} para 123456?');">
+              <button type="submit" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                🔒 Resetar Senha
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="data-cards">
+      {% for paciente in pacientes %}
+      <div class="data-card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9;">
+          <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700; flex-shrink: 0;">
+            {% if paciente.profile_photo %}
+              <img src="{{ url_for('static', filename='uploads/profile_photos/' + paciente.profile_photo) }}" alt="Foto de {{ paciente.nome }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              {{ paciente.nome[0] if paciente.nome else 'P' }}
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-weight: 700; font-size: 16px; color: #0f172a; margin-bottom: 4px;">{{ paciente.nome }}</div>
+            <div style="color: #64748b; font-size: 14px;">📞 {{ paciente.telefone or 'Sem telefone' }}</div>
+          </div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Email</div>
+          <div class="data-card-value">{{ paciente.email }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Data Nasc.</div>
+          <div class="data-card-value">{{ paciente.data_nascimento or '-' }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Telefone</div>
+          <div class="data-card-value">{{ paciente.telefone or '-' }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Médico</div>
+          <div class="data-card-value">{{ paciente.medico_nome or 'Não atribuído' }}</div>
+        </div>
+        <div class="data-card-row" style="border-bottom: none; padding-top: 16px; margin-top: 8px;">
+          <form method="POST" action="{{ url_for('admin_resetar_senha', user_id=paciente.user_id) }}" style="width: 100%;" onsubmit="return confirm('Tem certeza que deseja resetar a senha de {{ paciente.nome }} para 123456?');">
+            <button type="submit" style="width: 100%; background: linear-gradient(135deg, #dc2626, #ef4444); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s;">
+              🔒 Resetar Senha para 123456
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modalMedico">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">👨‍⚕️ Cadastrar Novo Médico</h3>
+      <button class="modal-close" onclick="document.getElementById('modalMedico').style.display='none'">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('cadastrar_medico') }}">
+      <div class="form-group">
+        <label>Nome Completo</label>
+        <input type="text" name="nome" placeholder="Dr. João Silva" required />
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" name="email" placeholder="medico@exemplo.com" required />
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" name="senha" placeholder="••••••••" required />
+      </div>
+      <div class="form-group">
+        <label>CRM</label>
+        <input type="text" name="crm" placeholder="123456" />
+      </div>
+      <div class="form-group">
+        <label>Especialidade</label>
+        <input type="text" name="especialidade" placeholder="Cardiologia" />
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center;">✨ Cadastrar Médico</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalPaciente">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">🧑 Cadastrar Novo Paciente</h3>
+      <button class="modal-close" onclick="document.getElementById('modalPaciente').style.display='none'">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('admin_cadastrar_paciente') }}">
+      <div class="form-group">
+        <label>Nome Completo</label>
+        <input type="text" name="nome" placeholder="Maria Silva" required />
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" name="email" placeholder="paciente@exemplo.com" required />
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" name="senha" placeholder="••••••••" required />
+      </div>
+      <div class="form-group">
+        <label>Data de Nascimento</label>
+        <input type="date" name="data_nascimento" />
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="tel" name="telefone" placeholder="(11) 98765-4321" />
+      </div>
+      <div class="form-group">
+        <label>Médico Responsável</label>
+        <select name="medico_id">
+          <option value="">Selecione um médico</option>
+          {% for medico in medicos %}
+          <option value="{{ medico.medico_id }}">{{ medico.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center;">✨ Cadastrar Paciente</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalZerarBanco">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">🗑️ Zerar Banco de Dados</h3>
+      <button class="modal-close" onclick="document.getElementById('modalZerarBanco').style.display='none'">&times;</button>
+    </div>
+    <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+      <p style="color: #dc2626; font-weight: 600; margin-bottom: 8px;">⚠️ ATENÇÃO: Esta ação é irreversível!</p>
+      <p style="color: #991b1b; font-size: 14px; margin: 0;">
+        Todos os médicos, pacientes, salas, consultas e evoluções serão permanentemente excluídos.
+        Apenas o administrador será mantido.
+      </p>
+    </div>
+    <form method="POST" action="{{ url_for('admin_zerar_banco') }}" onsubmit="return confirm('Tem certeza absoluta? Esta ação NÃO pode ser desfeita!');">
+      <div class="form-group">
+        <label style="color: #dc2626; font-weight: 600;">Digite ZERAR para confirmar:</label>
+        <input type="text" name="confirmacao" placeholder="ZERAR" required style="border-color: #dc2626;" />
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center; background: #dc2626; color: white;">
+        🗑️ Confirmar e Zerar Banco de Dados
+      </button>
+    </form>
+  </div>
+</div>
+
+<div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+  Desenvolvido por <strong style="color: #0891b2; font-weight: 600;">João Layon</strong> • Design UX/DX Premium
+</div>
+{% endblock %}

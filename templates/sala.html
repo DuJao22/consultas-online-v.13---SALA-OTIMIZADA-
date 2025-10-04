@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Sala {{ codigo }} — MedConnect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230891b2' width='100' height='100' rx='20'/><path fill='white' d='M50 25 L50 45 L30 45 L30 55 L50 55 L50 75 L60 75 L60 55 L80 55 L80 45 L60 45 L60 25 Z'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      overflow: hidden;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(8, 145, 178, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-mini {
+      width: 36px;
+      height: 36px;
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .logo-mini svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
+    .header-code {
+      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .header-credits {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+      .header-credits {
+        display: none;
+      }
+      
+      .header-left {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .header-title {
+        font-size: 15px;
+      }
+      
+      .header-code {
+        font-size: 12px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      header {
+        padding: 14px 16px;
+      }
+      
+      .logo-mini {
+        width: 32px;
+        height: 32px;
+      }
+      
+      .logo-mini svg {
+        width: 18px;
+        height: 18px;
+      }
+      
+      .header-title {
+        font-size: 14px;
+      }
+      
+      .header-code {
+        font-size: 11px;
+      }
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding-top: 68px;
+      position: relative;
+    }
+    
+    .video-main {
+      flex: 1;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      position: relative;
+      border: 3px solid #0891b2;
+      border-radius: 0;
+    }
+    
+    .video-pip {
+      position: absolute;
+      top: 88px;
+      left: 24px;
+      width: 240px;
+      height: 180px;
+      background: #000;
+      border: 3px solid #0891b2;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      z-index: 100;
+      transition: all 0.3s ease;
+    }
+    
+    .video-pip:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 48px rgba(8, 145, 178, 0.4);
+    }
+    
+    .video-main video,
+    .video-pip video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .video-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(8, 145, 178, 0.95);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .video-main .video-label {
+      left: auto;
+      right: 12px;
+    }
+    
+    .video-placeholder {
+      text-align: center;
+      color: #64748b;
+    }
+    
+    .video-placeholder-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .presence-indicator {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 16px 28px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      z-index: 50;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      border: 2px solid rgba(8, 145, 178, 0.3);
+      max-width: 90vw;
+      width: max-content;
+    }
+    
+    .presence-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      width: 100%;
+      min-width: 0;
+    }
+    
+    .presence-text {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .presence-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .presence-dot.waiting {
+      background: #fbbf24;
+    }
+    
+    .presence-dot.connected {
+      background: #10b981;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .presence-text.waiting {
+      color: #fbbf24;
+    }
+    
+    .presence-text.connected {
+      color: #10b981;
+    }
+    
+    .notification-toast {
+      position: fixed;
+      top: 100px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 1001;
+      animation: slideInRight 0.3s ease-out;
+      display: none;
+      border-left: 4px solid #10b981;
+    }
+    
+    .notification-toast.show {
+      display: block;
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .controls {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 1000;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 90vw;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 16px 24px;
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(8, 145, 178, 0.4);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .evolucao-panel {
+      position: fixed;
+      right: -420px;
+      top: 68px;
+      bottom: 0;
+      width: 420px;
+      background: white;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.2);
+      transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      z-index: 999;
+    }
+    
+    .evolucao-panel.open {
+      right: 0;
+    }
+    
+    .evolucao-header {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .evolucao-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    
+    .evolucao-content {
+      padding: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #334155;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    textarea,
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    textarea:focus,
+    input:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+    }
+    
+    .btn-evolucao {
+      position: fixed;
+      bottom: 120px;
+      right: 24px;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.4);
+      z-index: 998;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-evolucao:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.5);
+    }
+    
+    .btn-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 32px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    .btn-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    @media(max-width:768px){
+      .evolucao-panel {
+        width: 100%;
+        right: -100%;
+      }
+      
+      .btn-evolucao {
+        bottom: 140px;
+        right: 16px;
+        padding: 14px 20px;
+        font-size: 14px;
+      }
+      
+      .video-pip {
+        width: 140px;
+        height: 105px;
+        top: 80px;
+        left: 16px;
+      }
+      
+      .controls {
+        bottom: 16px;
+        gap: 8px;
+        padding: 12px 16px;
+      }
+      
+      .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+      
+      .presence-indicator {
+        gap: 10px;
+        padding: 12px 16px;
+        top: 80px;
+        left: 16px;
+        right: 16px;
+        transform: none;
+        max-width: none;
+        width: calc(100vw - 32px);
+      }
+      
+      .presence-text {
+        font-size: 13px;
+        word-break: break-word;
+        hyphens: auto;
+      }
+      
+      .presence-item {
+        font-size: 13px;
+        flex-wrap: nowrap;
+      }
+      
+      .notification-toast {
+        right: 16px;
+        left: 16px;
+        top: 80px;
+      }
+    }
+    
+    @media(max-width:480px){
+      .video-pip {
+        width: 120px;
+        height: 90px;
+        top: 76px;
+        left: 12px;
+        border: 2px solid #0891b2;
+      }
+      
+      .video-label {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+      
+      .controls {
+        gap: 6px;
+        bottom: 12px;
+        padding: 10px 12px;
+      }
+      
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+    
+    @media(min-width:1200px){
+      .video-pip {
+        width: 320px;
+        height: 240px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="logo-mini">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L12 12L22 12M12 12L12 22M12 12L2 12" stroke="#0891b2" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="10" stroke="#0891b2" stroke-width="2"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">🎥 Sala de Consulta</div>
+      <div class="header-code">Código: {{ codigo }}</div>
+    </div>
+  </div>
+  <div class="header-credits">Desenvolvido por João Layon • Design UX/DX Premium</div>
+</header>
+
+<div class="container">
+  <div class="presence-indicator" id="presenceIndicator">
+    {% if is_medico %}
+    <div class="presence-item">
+      <div class="presence-dot waiting" id="presenceDotMedico"></div>
+      <span class="presence-text waiting" id="presenceTextMedico">👨‍⚕️ Dr(a). {{ session.nome }}: Aguardando</span>
+    </div>
+    <div class="presence-item">
+      <div class="presence-dot waiting" id="presenceDotPaciente"></div>
+      <span class="presence-text waiting" id="presenceTextPaciente">🧑 {{ paciente_nome }}: Aguardando</span>
+    </div>
+    {% else %}
+    <div class="presence-item">
+      <div class="presence-dot waiting" id="presenceDotPaciente"></div>
+      <span class="presence-text waiting" id="presenceTextPaciente">🧑 {{ session.nome }}: Aguardando</span>
+    </div>
+    <div class="presence-item">
+      <div class="presence-dot waiting" id="presenceDotMedico"></div>
+      <span class="presence-text waiting" id="presenceTextMedico">👨‍⚕️ Dr(a). {{ medico_nome }}: Aguardando</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if is_medico %}
+  <div class="video-main" id="mainVideo">
+    <div class="video-label">🧑 {{ paciente_nome }}</div>
+    <div class="video-placeholder">
+      <div class="video-placeholder-icon">📹</div>
+      <div>Aguardando paciente...</div>
+    </div>
+  </div>
+  <div class="video-pip" id="pipVideo">
+    <div class="video-label">👨‍⚕️ Você</div>
+    <div class="video-placeholder" style="padding: 20px; font-size: 11px;">
+      <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+      <div>Sua câmera</div>
+    </div>
+  </div>
+  {% else %}
+  <div class="video-main" id="mainVideo">
+    <div class="video-label">👨‍⚕️ Dr(a). {{ medico_nome }}</div>
+    <div class="video-placeholder">
+      <div class="video-placeholder-icon">📹</div>
+      <div>Aguardando médico...</div>
+    </div>
+  </div>
+  <div class="video-pip" id="pipVideo">
+    <div class="video-label">🧑 Você</div>
+    <div class="video-placeholder" style="padding: 20px; font-size: 11px;">
+      <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+      <div>Sua câmera</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="notification-toast" id="notificationToast"></div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="startBtn">📹 Iniciar Câmera</button>
+  <button class="btn btn-success" id="callBtn">📞 Iniciar Chamada</button>
+  <button class="btn btn-danger" id="hangupBtn">🔴 Encerrar</button>
+</div>
+
+{% if is_medico %}
+<button class="btn-evolucao" onclick="toggleEvolucao()">
+  📝 Nova Evolução
+</button>
+
+<form method="POST" action="{{ url_for('finalizar_consulta', codigo=codigo) }}" style="position: fixed; bottom: 200px; right: 24px; z-index: 998;">
+  <button type="submit" class="btn-evolucao" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);" onclick="return confirm('Tem certeza que deseja finalizar esta consulta? A sala será desativada e você precisará criar uma nova sala para futuras consultas.')">
+    ✅ Finalizar Consulta
+  </button>
+</form>
+
+<div class="evolucao-panel" id="evolucaoPanel">
+  <div class="evolucao-header">
+    <h3>📋 Registrar Evolução</h3>
+    <button class="btn-close" onclick="toggleEvolucao()">&times;</button>
+  </div>
+  <div class="evolucao-content">
+    <form method="POST" action="{{ url_for('criar_evolucao', codigo=codigo) }}">
+      <div class="form-group">
+        <label>Anotações da Consulta</label>
+        <textarea name="anotacoes" placeholder="Registre as observações da consulta..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Diagnóstico</label>
+        <textarea name="diagnostico" placeholder="Diagnóstico clínico..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Prescrição</label>
+        <textarea name="prescricao" placeholder="Prescrições e orientações..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-success" style="width:100%">💾 Salvar Evolução</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleEvolucao() {
+  document.getElementById('evolucaoPanel').classList.toggle('open');
+}
+</script>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const sala = "{{ codigo }}";
+const socket = io(window.location.origin, {
+  transports: ['websocket', 'polling'],
+  upgrade: true,
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: 5,
+  timeout: 20000
+});
+const isMedico = {{ 'true' if is_medico else 'false' }};
+let localStream = null;
+let pc = null;
+let statsInterval = null;
+let qualityState = { level: 'high', goodIntervals: 0, poorIntervals: 0 };
+let lastStats = { timestamp: 0, packetsSent: 0, bytesSent: 0, retransmitted: 0 };
+const config = { 
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" }
+  ],
+  iceCandidatePoolSize: 10,
+  bundlePolicy: 'max-bundle',
+  rtcpMuxPolicy: 'require'
+};
+
+function showNotification(message) {
+  const toast = document.getElementById('notificationToast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 4000);
+}
+
+function updatePresence(role, status) {
+  const dotId = role === 'medico' ? 'presenceDotMedico' : 'presenceDotPaciente';
+  const textId = role === 'medico' ? 'presenceTextMedico' : 'presenceTextPaciente';
+  const dot = document.getElementById(dotId);
+  const text = document.getElementById(textId);
+  
+  if (dot && text) {
+    dot.classList.remove('waiting', 'connected');
+    text.classList.remove('waiting', 'connected');
+    dot.classList.add(status);
+    text.classList.add(status);
+    
+    const currentText = text.textContent;
+    const newStatus = status === 'connected' ? 'Conectado' : 'Aguardando';
+    text.textContent = currentText.replace(/: (Aguardando|Conectado)/, ': ' + newStatus);
+  }
+}
+
+document.getElementById('startBtn').onclick = async () => {
+  try{
+    localStream = await navigator.mediaDevices.getUserMedia({ 
+      video: {
+        width: { ideal: 640, max: 1280 },
+        height: { ideal: 480, max: 720 },
+        frameRate: { ideal: 24, max: 30 }
+      }, 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
+    const v = document.createElement('video');
+    v.autoplay = true; v.muted = true; v.playsInline = true;
+    v.srcObject = localStream;
+    
+    const pipContainer = document.getElementById('pipVideo');
+    const label = pipContainer.querySelector('.video-label');
+    pipContainer.innerHTML = '';
+    if(label) pipContainer.appendChild(label);
+    pipContainer.appendChild(v);
+    
+    const myRole = isMedico ? 'medico' : 'paciente';
+    updatePresence(myRole, 'connected');
+    
+    const myName = isMedico ? 'Dr(a). {{ session.nome }}' : '{{ session.nome }}';
+    showNotification(`✅ Câmera iniciada`);
+  } catch(e){ 
+    alert('Erro ao acessar câmera: '+e.message);
+  }
+};
+
+async function monitorConnectionQuality() {
+  if (!pc) return;
+  
+  try {
+    const stats = await pc.getStats();
+    let outboundReport = null;
+    
+    stats.forEach(report => {
+      if (report.type === 'outbound-rtp' && report.kind === 'video') {
+        outboundReport = report;
+      }
+    });
+    
+    if (!outboundReport) return;
+    
+    const now = outboundReport.timestamp;
+    const packetsSent = outboundReport.packetsSent || 0;
+    const bytesSent = outboundReport.bytesSent || 0;
+    const retransmittedPackets = outboundReport.retransmittedPacketsSent || 0;
+    
+    if (lastStats.timestamp > 0) {
+      const timeDiff = (now - lastStats.timestamp) / 1000;
+      const packetsDiff = packetsSent - lastStats.packetsSent;
+      const retransmittedDiff = retransmittedPackets - lastStats.retransmitted;
+      
+      let lossRate = 0;
+      if (packetsDiff > 0) {
+        lossRate = (retransmittedDiff / packetsDiff) * 100;
+      }
+      
+      const bitrate = ((bytesSent - lastStats.bytesSent) * 8) / timeDiff;
+      
+      if (lossRate > 5 || bitrate < 100000) {
+        qualityState.poorIntervals++;
+        qualityState.goodIntervals = 0;
+        
+        if (qualityState.poorIntervals >= 3 && qualityState.level !== 'low') {
+          adjustQuality('down');
+        }
+      } else {
+        qualityState.goodIntervals++;
+        qualityState.poorIntervals = 0;
+        
+        if (qualityState.goodIntervals >= 5 && qualityState.level === 'low') {
+          adjustQuality('up');
+        }
+      }
+    }
+    
+    lastStats = { timestamp: now, packetsSent, bytesSent, retransmitted: retransmittedPackets };
+  } catch (e) {
+    console.warn('Erro ao monitorar qualidade:', e);
+  }
+}
+
+function adjustQuality(direction) {
+  if (!pc) return;
+  
+  const senders = pc.getSenders();
+  senders.forEach(sender => {
+    if (sender.track && sender.track.kind === 'video') {
+      const params = sender.getParameters();
+      if (!params.encodings) {
+        params.encodings = [{}];
+      }
+      
+      if (direction === 'down' && qualityState.level === 'high') {
+        params.encodings[0].maxBitrate = 300000;
+        params.encodings[0].scaleResolutionDownBy = 2;
+        qualityState.level = 'low';
+        sender.setParameters(params).catch(e => console.warn('Erro ao ajustar qualidade:', e));
+        console.log('⚠️ Qualidade reduzida para economizar banda');
+        showNotification('⚠️ Qualidade ajustada para conexão estável');
+      } else if (direction === 'up' && qualityState.level === 'low') {
+        params.encodings[0].maxBitrate = 500000;
+        params.encodings[0].scaleResolutionDownBy = 1;
+        qualityState.level = 'high';
+        sender.setParameters(params).catch(e => console.warn('Erro ao restaurar qualidade:', e));
+        console.log('✅ Qualidade restaurada');
+        showNotification('✅ Qualidade de vídeo melhorada');
+      }
+    }
+  });
+}
+
+function createPeerConnection(){
+  pc = new RTCPeerConnection(config);
+  if(localStream){
+    localStream.getTracks().forEach(t => {
+      const sender = pc.addTrack(t, localStream);
+      if (t.kind === 'video') {
+        const params = sender.getParameters();
+        if (!params.encodings) {
+          params.encodings = [{}];
+        }
+        params.encodings[0].maxBitrate = 500000;
+        params.encodings[0].maxFramerate = 30;
+        params.encodings[0].scaleResolutionDownBy = 1;
+        qualityState.level = 'high';
+        sender.setParameters(params).catch(e => console.warn('Erro ao configurar bitrate:', e));
+      }
+    });
+  }
+  pc.ontrack = (evt) => {
+    const mainContainer = document.getElementById('mainVideo');
+    
+    if(mainContainer.querySelector('video')) return;
+    const v = document.createElement('video');
+    v.autoplay = true; v.playsInline = true;
+    v.srcObject = evt.streams[0];
+    
+    const label = mainContainer.querySelector('.video-label');
+    mainContainer.innerHTML = '';
+    if(label) mainContainer.appendChild(label);
+    mainContainer.appendChild(v);
+    
+    if (statsInterval) clearInterval(statsInterval);
+    statsInterval = setInterval(monitorConnectionQuality, 3000);
+  };
+  pc.onicecandidate = (e) => {
+    if(e.candidate){
+      socket.emit('signal', { sala: sala, type: 'ice', candidate: e.candidate });
+    }
+  };
+  pc.oniceconnectionstatechange = () => {
+    console.log('ICE connection state:', pc.iceConnectionState);
+    if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+      showNotification('⚠️ Conexão instável. Reconectando...');
+    } else if (pc.iceConnectionState === 'connected') {
+      showNotification('✅ Conexão estabelecida');
+    }
+  };
+}
+
+document.getElementById('callBtn').onclick = async () => {
+  if(!localStream){ alert('Primeiro inicie a câmera.'); return; }
+  
+  socket.emit('iniciar_consulta', { codigo_sala: sala });
+  
+  createPeerConnection();
+  const offer = await pc.createOffer({
+    offerToReceiveVideo: true,
+    offerToReceiveAudio: true
+  });
+  await pc.setLocalDescription(offer);
+  socket.emit('signal', { sala: sala, type: 'sdp', sdp: pc.localDescription });
+};
+
+document.getElementById('hangupBtn').onclick = () => {
+  if (statsInterval) {
+    clearInterval(statsInterval);
+    statsInterval = null;
+  }
+  qualityState = { level: 'high', goodIntervals: 0, poorIntervals: 0 };
+  lastStats = { timestamp: 0, packetsSent: 0, bytesSent: 0, retransmitted: 0 };
+  if(pc){ pc.close(); pc = null; }
+  const myRole = isMedico ? 'medico' : 'paciente';
+  socket.emit('leave', { sala: sala, nome: '{{ session.nome }}', tipo: myRole });
+  window.location.href = '{{ url_for("dashboard") }}';
+};
+
+socket.on('signal', async (data) => {
+  if(!data) return;
+  if(data.type === 'sdp'){
+    if(!pc){ createPeerConnection(); }
+    const desc = new RTCSessionDescription(data.sdp);
+    if(desc.type === 'offer'){
+      await pc.setRemoteDescription(desc);
+      const answer = await pc.createAnswer({
+        offerToReceiveVideo: true,
+        offerToReceiveAudio: true
+      });
+      await pc.setLocalDescription(answer);
+      socket.emit('signal', { sala: sala, type: 'sdp', sdp: pc.localDescription });
+    } else {
+      await pc.setRemoteDescription(desc);
+    }
+  } else if(data.type === 'ice'){
+    try{
+      if(pc && pc.remoteDescription){
+        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+      }
+    }catch(e){ console.warn('ICE candidate error', e); }
+  }
+});
+
+socket.on('connect', () => {
+  console.log('✅ Socket.IO conectado ao servidor!');
+  showNotification('Conectado ao servidor');
+  
+  const myRole = isMedico ? 'medico' : 'paciente';
+  socket.emit('join', { sala: sala, nome: '{{ session.nome }}', tipo: myRole });
+});
+
+socket.on('disconnect', (reason) => {
+  console.log('❌ Socket.IO desconectado:', reason);
+  showNotification('Desconectado: ' + reason);
+});
+
+socket.on('connect_error', (error) => {
+  console.error('❌ Erro Socket.IO:', error);
+  showNotification('Erro ao conectar...');
+});
+
+socket.on('peer-joined', (data) => {
+  console.log('👥 Peer joined:', data);
+  if (data.tipo) {
+    updatePresence(data.tipo, 'connected');
+    const nome = data.tipo === 'medico' ? 'Dr(a). ' + data.nome : data.nome;
+    showNotification(`✅ ${nome} entrou na sala`);
+  }
+});
+
+socket.on('peer-left', (data) => {
+  console.log('Peer left:', data);
+  if (data.tipo) {
+    updatePresence(data.tipo, 'waiting');
+    const nome = data.tipo === 'medico' ? 'Dr(a). ' + data.nome : data.nome;
+    showNotification(`👋 ${nome} saiu da sala`);
+  }
+});
+
+socket.on('consulta_registrada', (data) => {
+  console.log('Consulta registrada:', data);
+  if(isMedico && data.consulta_id){
+    console.log(`✅ Consulta #${data.consulta_id} registrada - R$ ${data.valor_total || 0}`);
+  }
+});
+
+socket.on('consulta_error', (data) => {
+  console.error('Erro ao registrar consulta:', data.error);
+});
+
+</script>
+</body>
+</html>

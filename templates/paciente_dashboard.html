@@ -1,0 +1,385 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Portal do Paciente{% endblock %}
+
+{% block breadcrumb %}<strong>Minhas Consultas</strong> / Paciente{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+  <div class="nav-section-title">PRINCIPAL</div>
+  <a href="{{ url_for('paciente_dashboard') }}" class="nav-item active">
+    <span class="nav-item-icon">📊</span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('paciente_evolucoes') }}" class="nav-item">
+    <span class="nav-item-icon">📋</span>
+    <span>Minhas Evoluções</span>
+  </a>
+  <a href="#salas" class="nav-item" onclick="document.querySelector('.section-salas').scrollIntoView({behavior: 'smooth'}); return false;">
+    <span class="nav-item-icon">🎥</span>
+    <span>Salas de Consulta</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+{% if salas %}
+<a href="{{ url_for('sala', codigo=salas[0].codigo) }}" class="btn">
+  🎥 Entrar na Consulta
+</a>
+{% endif %}
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .section-salas, .section-historico {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+  }
+
+  .section-title {
+    color: #0f172a;
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    background: #f8fafc;
+    color: #0891b2;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  tbody tr {
+    transition: background 0.2s;
+  }
+
+  tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .evolucao-card {
+    background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border-left: 4px solid #0891b2;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .evolucao-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 20px rgba(8, 145, 178, 0.15);
+  }
+
+  .evolucao-date {
+    color: #0891b2;
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-size: 15px;
+  }
+
+  .evolucao-content {
+    color: #334155;
+    line-height: 1.6;
+  }
+
+  .evolucao-content p {
+    margin-bottom: 8px;
+  }
+
+  .evolucao-content strong {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  .medico-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .medico-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #0891b2;
+  }
+
+  .medico-avatar-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    border: 2px solid #0891b2;
+  }
+
+  .medico-nome {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 15px;
+  }
+
+  @media (max-width: 768px) {
+    .section-salas, .section-historico {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    table {
+      font-size: 14px;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tbody, tr, td {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    tr:hover {
+      background: #f1f5f9;
+    }
+
+    td {
+      padding: 8px 0;
+      border: none;
+      text-align: left;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    td:before {
+      content: attr(data-label);
+      font-weight: 700;
+      color: #0891b2;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td:last-child {
+      padding-top: 12px;
+    }
+
+    .btn-sm {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .medico-avatar, .medico-avatar-placeholder {
+      width: 60px;
+      height: 60px;
+      font-size: 22px;
+    }
+
+    .medico-nome {
+      font-size: 16px;
+    }
+
+    .evolucao-card {
+      padding: 16px;
+    }
+
+    .evolucao-date {
+      font-size: 14px;
+    }
+
+    .evolucao-content {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .section-salas, .section-historico {
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      margin-bottom: 12px;
+    }
+
+    tr {
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    td {
+      font-size: 13px;
+      padding: 6px 0;
+    }
+
+    td:before {
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .btn-sm {
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+
+    .evolucao-card {
+      padding: 14px;
+    }
+
+    .evolucao-date {
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .evolucao-content {
+      font-size: 13px;
+    }
+
+    .empty-state {
+      padding: 30px 15px;
+    }
+
+    .empty-state-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Portal do Paciente</h1>
+  <p class="page-subtitle">Suas consultas e histórico médico</p>
+</div>
+
+<div class="section-salas" id="salas">
+  <h2 class="section-title">🎥 Salas de Consulta Disponíveis</h2>
+  {% if salas %}
+  <table>
+    <thead>
+      <tr>
+        <th>Médico</th>
+        <th>Título</th>
+        <th>Criada em</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sala in salas %}
+      <tr>
+        <td data-label="Médico">
+          <div class="medico-info">
+            {% if sala.profile_photo %}
+              <img src="{{ url_for('static', filename='uploads/profile_photos/' + sala.profile_photo) }}" alt="{{ sala.medico_nome }}" class="medico-avatar">
+            {% else %}
+              <div class="medico-avatar-placeholder">{{ sala.medico_nome[0]|upper }}</div>
+            {% endif %}
+            <span class="medico-nome">Dr(a). {{ sala.medico_nome }}</span>
+          </div>
+        </td>
+        <td data-label="Título">{{ sala.titulo }}</td>
+        <td data-label="Criada em">{{ sala.criado_em|date_br }}</td>
+        <td data-label="Ação">
+          <a href="{{ url_for('sala', codigo=sala.codigo) }}" class="btn btn-sm">🎥 Entrar na Sala</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📅</div>
+    <p>Nenhuma sala de consulta disponível no momento.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="section-historico" id="historico">
+  <h2 class="section-title">📋 Histórico de Evoluções</h2>
+  {% if evolucoes %}
+    {% for evolucao in evolucoes %}
+    <div class="evolucao-card">
+      <div class="evolucao-date">📅 {{ evolucao.data|datetime_br }} - Dr(a). {{ evolucao.medico_nome }}</div>
+      <div class="evolucao-content">
+        {% if evolucao.anotacoes %}
+        <p><strong>Anotações:</strong> {{ evolucao.anotacoes }}</p>
+        {% endif %}
+        {% if evolucao.diagnostico %}
+        <p><strong>Diagnóstico:</strong> {{ evolucao.diagnostico }}</p>
+        {% endif %}
+        {% if evolucao.prescricao %}
+        <p><strong>Prescrição:</strong> {{ evolucao.prescricao }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📝</div>
+    <p>Nenhuma evolução registrada ainda.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+  Desenvolvido por <strong style="color: #0891b2; font-weight: 600;">João Layon</strong> • Design UX/DX Premium
+</div>
+{% endblock %}

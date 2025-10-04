@@ -1,0 +1,907 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Fechamentos Mensais{% endblock %}
+
+{% block breadcrumb %}<strong>Dashboard</strong> / Fechamentos Mensais{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+  <div class="nav-section-title">Principal</div>
+  <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+    <span class="nav-item-icon">📊</span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('admin_faturamento') }}" class="nav-item">
+    <span class="nav-item-icon">💰</span>
+    <span>Faturamento</span>
+  </a>
+  <a href="{{ url_for('admin_relatorio_fechamento') }}" class="nav-item">
+    <span class="nav-item-icon">📈</span>
+    <span>Relatórios</span>
+  </a>
+  <a href="{{ url_for('admin_fechamentos') }}" class="nav-item active">
+    <span class="nav-item-icon">📅</span>
+    <span>Fechamentos</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">Gestão</div>
+  <a href="#" class="nav-item" onclick="document.getElementById('modalMedico').style.display='flex'; return false;">
+    <span class="nav-item-icon">👨‍⚕️</span>
+    <span>Cadastrar Médico</span>
+  </a>
+  <a href="#" class="nav-item" onclick="document.getElementById('modalPaciente').style.display='flex'; return false;">
+    <span class="nav-item-icon">🧑</span>
+    <span>Cadastrar Paciente</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">Sistema</div>
+  <a href="{{ url_for('admin_configuracoes') }}" class="nav-item">
+    <span class="nav-item-icon">⚙️</span>
+    <span>Configurações</span>
+  </a>
+  <a href="#" class="nav-item" onclick="document.getElementById('modalZerarBanco').style.display='flex'; return false;" style="color: #dc2626;">
+    <span class="nav-item-icon">🗑️</span>
+    <span>Zerar Banco</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('exportar_planilha_pagamentos') }}" class="btn" style="margin-right: 12px; background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+  📊 Exportar Planilha
+</a>
+<a href="#" onclick="document.getElementById('modalNovoFechamento').style.display='flex'; return false;" class="btn">
+  ➕ Novo Fechamento
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">📅 Fechamentos Mensais</h1>
+  <p class="page-subtitle">Gerencie os fechamentos e confirme os pagamentos dos médicos</p>
+</div>
+
+<style>
+  .section {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+
+  thead {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  th {
+    padding: 18px 20px;
+    text-align: left;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    border-bottom: none;
+    white-space: nowrap;
+  }
+
+  th:first-child {
+    border-top-left-radius: 16px;
+    padding-left: 24px;
+  }
+
+  th:last-child {
+    border-top-right-radius: 16px;
+    padding-right: 24px;
+  }
+
+  tbody tr {
+    background: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  tbody tr:hover {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(8, 145, 178, 0.12);
+  }
+
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  td {
+    padding: 20px;
+    color: #334155;
+    vertical-align: middle;
+  }
+
+  td:first-child {
+    padding-left: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 15px;
+  }
+
+  td:last-child {
+    padding-right: 24px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  }
+
+  .badge-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  .badge-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+  }
+
+  .badge-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+
+  .badge-warning:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+  }
+
+  .badge-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+
+  .badge-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-confirm {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  .btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-view {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .btn-view:hover {
+    background: #bae6fd;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+  }
+
+  .empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 32px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #94a3b8;
+    line-height: 1;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 14px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #0891b2;
+    box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+  }
+
+  .fechamento-cards {
+    display: none;
+  }
+
+  .fechamento-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+
+  .fechamento-card:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .fechamento-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .fechamento-card-medico {
+    font-weight: 700;
+    font-size: 18px;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .fechamento-card-periodo {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .fechamento-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .fechamento-card-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .fechamento-card-label {
+    color: #0891b2;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .fechamento-card-value {
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .fechamento-card-actions {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px solid #e2e8f0;
+  }
+
+  @media (min-width: 1400px) {
+    th, td {
+      padding: 22px 24px;
+      font-size: 15px;
+    }
+
+    .section {
+      padding: 36px;
+    }
+
+    .badge {
+      font-size: 13px;
+      padding: 9px 16px;
+    }
+
+    .btn-small {
+      font-size: 15px;
+      padding: 10px 18px;
+    }
+  }
+
+  @media (min-width: 1200px) and (max-width: 1399px) {
+    th, td {
+      padding: 20px 22px;
+      font-size: 14px;
+    }
+
+    .section {
+      padding: 32px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 8px 14px;
+    }
+
+    .btn-small {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  }
+
+  @media (min-width: 993px) and (max-width: 1199px) {
+    th, td {
+      padding: 16px 18px;
+      font-size: 13px;
+    }
+
+    .section {
+      padding: 24px;
+    }
+
+    th {
+      font-size: 10px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 6px 12px;
+    }
+
+    .btn-small {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
+    
+    table {
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      font-size: 13px;
+    }
+
+    th {
+      font-size: 10px;
+    }
+    
+    .section {
+      padding: 20px;
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 5px 10px;
+    }
+
+    .btn-small {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .section {
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+    }
+
+    .section-title {
+      font-size: 16px;
+    }
+
+    .table-container {
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .table-container table {
+      display: none;
+    }
+
+    .fechamento-cards {
+      display: block;
+    }
+
+    .btn-small {
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 6px 10px;
+    }
+
+    .modal-content {
+      padding: 24px;
+      width: 95%;
+      border-radius: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .section {
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state {
+      padding: 40px 16px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+    }
+
+    .fechamento-card {
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+    }
+
+    .fechamento-card-medico {
+      font-size: 16px;
+    }
+
+    .fechamento-card-periodo {
+      font-size: 13px;
+    }
+
+    .fechamento-card-row {
+      padding: 8px 0;
+    }
+
+    .fechamento-card-label {
+      font-size: 11px;
+    }
+
+    .fechamento-card-value {
+      font-size: 13px;
+    }
+
+    .btn-small {
+      width: 100%;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .badge {
+      font-size: 9px;
+      padding: 5px 8px;
+    }
+  }
+
+  .valor-destaque {
+    font-weight: 700;
+    color: #0891b2;
+    font-size: 15px;
+  }
+
+  .periodo-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+</style>
+
+<div class="section">
+  <div class="section-title">
+    📋 Fechamentos Registrados
+  </div>
+
+  {% if fechamentos %}
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Médico</th>
+          <th>Período</th>
+          <th>Consultas</th>
+          <th>Valor Total</th>
+          <th>Valor Médico</th>
+          <th>Status Admin</th>
+          <th>Status Médico</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fechamentos %}
+        <tr>
+          <td>{{ f.medico_nome }}</td>
+          <td><span class="periodo-badge">{{ '%02d'|format(f.mes) }}/{{ f.ano }}</span></td>
+          <td><strong>{{ f.total_consultas }}</strong></td>
+          <td><span class="valor-destaque">R$ {{ '%.2f'|format(f.valor_total) }}</span></td>
+          <td><span class="valor-destaque">R$ {{ '%.2f'|format(f.valor_medico) }}</span></td>
+          <td>
+            {% if f.pagamento_confirmado_admin %}
+            <span class="badge badge-success">✓ Pago</span>
+            {% else %}
+            <span class="badge badge-warning">⏳ Pendente</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if f.pagamento_recebido_medico %}
+            <span class="badge badge-success">✓ Recebido</span>
+            {% elif f.pagamento_confirmado_admin %}
+            <span class="badge badge-warning">⏳ Aguardando</span>
+            {% else %}
+            <span class="badge badge-danger">— Não Pago</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not f.pagamento_confirmado_admin %}
+            <button class="btn-small btn-confirm" onclick="confirmarPagamento({{ f.id }}, '{{ f.medico_nome }}', '{{ '%02d'|format(f.mes) }}/{{ f.ano }}', {{ f.valor_medico }})">
+              ✓ Confirmar
+            </button>
+            {% else %}
+            <span style="color: #10b981; font-size: 11px; font-weight: 600;">✓ Confirmado</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="fechamento-cards">
+      {% for f in fechamentos %}
+      <div class="fechamento-card">
+        <div class="fechamento-card-header">
+          <div>
+            <div class="fechamento-card-medico">{{ f.medico_nome }}</div>
+            <div class="fechamento-card-periodo">📅 {{ '%02d'|format(f.mes) }}/{{ f.ano }}</div>
+          </div>
+        </div>
+        
+        <div class="fechamento-card-row">
+          <span class="fechamento-card-label">Consultas</span>
+          <span class="fechamento-card-value">{{ f.total_consultas }}</span>
+        </div>
+        
+        <div class="fechamento-card-row">
+          <span class="fechamento-card-label">Valor Total</span>
+          <span class="fechamento-card-value">R$ {{ '%.2f'|format(f.valor_total) }}</span>
+        </div>
+        
+        <div class="fechamento-card-row">
+          <span class="fechamento-card-label">Valor Médico</span>
+          <span class="fechamento-card-value">R$ {{ '%.2f'|format(f.valor_medico) }}</span>
+        </div>
+        
+        <div class="fechamento-card-row">
+          <span class="fechamento-card-label">Status Admin</span>
+          <span class="fechamento-card-value">
+            {% if f.pagamento_confirmado_admin %}
+            <span class="badge badge-success">✓ Pago</span>
+            {% else %}
+            <span class="badge badge-warning">⏳ Pendente</span>
+            {% endif %}
+          </span>
+        </div>
+        
+        <div class="fechamento-card-row">
+          <span class="fechamento-card-label">Status Médico</span>
+          <span class="fechamento-card-value">
+            {% if f.pagamento_recebido_medico %}
+            <span class="badge badge-success">✓ Recebido</span>
+            {% elif f.pagamento_confirmado_admin %}
+            <span class="badge badge-warning">⏳ Aguardando</span>
+            {% else %}
+            <span class="badge badge-danger">— Não Pago</span>
+            {% endif %}
+          </span>
+        </div>
+        
+        <div class="fechamento-card-actions">
+          {% if not f.pagamento_confirmado_admin %}
+          <button class="btn-small btn-confirm" onclick="confirmarPagamento({{ f.id }}, '{{ f.medico_nome }}', '{{ '%02d'|format(f.mes) }}/{{ f.ano }}', {{ f.valor_medico }})">
+            ✓ Confirmar Pagamento
+          </button>
+          {% else %}
+          <div style="color: #10b981; font-size: 13px; text-align: center; font-weight: 600;">
+            ✓ Confirmado em {{ f.data_confirmacao_admin|datetime_br }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">📅</div>
+    <h3 style="margin-bottom: 8px; color: #334155;">Nenhum fechamento registrado</h3>
+    <p>Clique em "Novo Fechamento" para criar o primeiro fechamento mensal.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="modal" id="modalNovoFechamento">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">➕ Criar Novo Fechamento</h3>
+      <button class="modal-close" onclick="document.getElementById('modalNovoFechamento').style.display='none'">&times;</button>
+    </div>
+    <form id="formNovoFechamento">
+      <div class="form-group">
+        <label>Médico</label>
+        <select name="medico_id" required>
+          <option value="">Selecione um médico</option>
+          {% for medico in medicos %}
+          <option value="{{ medico.id }}">{{ medico.nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Mês</label>
+        <select name="mes" required>
+          <option value="">Selecione o mês</option>
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ano</label>
+        <input type="number" name="ano" value="{{ now.year }}" min="2020" max="2030" required />
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white;">
+        ✨ Criar Fechamento
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalConfirmarPagamento">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">✓ Confirmar Pagamento</h3>
+      <button class="modal-close" onclick="document.getElementById('modalConfirmarPagamento').style.display='none'">&times;</button>
+    </div>
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+      <p style="color: #15803d; font-weight: 600; margin-bottom: 8px;" id="confirmacao-info"></p>
+    </div>
+    <form id="formConfirmarPagamento">
+      <input type="hidden" name="fechamento_id" id="fechamento_id" />
+      <div class="form-group">
+        <label>Observações (opcional)</label>
+        <textarea name="observacoes" rows="3" placeholder="Adicione observações sobre o pagamento..."></textarea>
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+        ✓ Confirmar Pagamento
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+function confirmarPagamento(id, medico, periodo, valor) {
+  document.getElementById('fechamento_id').value = id;
+  document.getElementById('confirmacao-info').textContent = 
+    `Confirmar pagamento de R$ ${valor.toFixed(2)} para ${medico} - ${periodo}?`;
+  document.getElementById('modalConfirmarPagamento').style.display = 'flex';
+}
+
+document.getElementById('formNovoFechamento').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const medico_id = formData.get('medico_id');
+  const mes = formData.get('mes');
+  const ano = formData.get('ano');
+  
+  fetch(`/admin/fechamento/criar/${medico_id}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Fechamento criado com sucesso!');
+      location.reload();
+    } else {
+      alert('Erro: ' + data.message);
+    }
+  })
+  .catch(error => {
+    alert('Erro ao criar fechamento: ' + error);
+  });
+});
+
+document.getElementById('formConfirmarPagamento').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const fechamento_id = formData.get('fechamento_id');
+  
+  fetch(`/admin/fechamento/confirmar-pagamento/${fechamento_id}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Pagamento confirmado com sucesso!');
+      location.reload();
+    } else {
+      alert('Erro: ' + data.message);
+    }
+  })
+  .catch(error => {
+    alert('Erro ao confirmar pagamento: ' + error);
+  });
+});
+</script>
+
+<div class="modal" id="modalZerarBanco">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">🗑️ Zerar Banco de Dados</h3>
+      <button class="modal-close" onclick="document.getElementById('modalZerarBanco').style.display='none'">&times;</button>
+    </div>
+    <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+      <p style="color: #dc2626; font-weight: 600; margin-bottom: 8px;">⚠️ ATENÇÃO: Esta ação é irreversível!</p>
+      <p style="color: #991b1b; font-size: 14px; margin: 0;">
+        Todos os médicos, pacientes, salas, consultas e evoluções serão permanentemente excluídos.
+        Apenas o administrador será mantido.
+      </p>
+    </div>
+    <form method="POST" action="{{ url_for('admin_zerar_banco') }}" onsubmit="return confirm('Tem certeza absoluta? Esta ação NÃO pode ser desfeita!');">
+      <div class="form-group">
+        <label style="color: #dc2626; font-weight: 600;">Digite ZERAR para confirmar:</label>
+        <input type="text" name="confirmacao" placeholder="ZERAR" required style="border-color: #dc2626;" />
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center; background: #dc2626; color: white;">
+        🗑️ Confirmar e Zerar Banco de Dados
+      </button>
+    </form>
+  </div>
+</div>
+
+<div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+  Desenvolvido por <strong style="color: #0891b2; font-weight: 600;">João Layon</strong> • Design UX/DX Premium
+</div>
+{% endblock %}

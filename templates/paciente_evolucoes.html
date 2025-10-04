@@ -1,0 +1,295 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Minhas Evoluções{% endblock %}
+
+{% block breadcrumb %}<strong>Evoluções Médicas</strong> / Paciente{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+  <div class="nav-section-title">PRINCIPAL</div>
+  <a href="{{ url_for('paciente_dashboard') }}" class="nav-item">
+    <span class="nav-item-icon">📊</span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('paciente_evolucoes') }}" class="nav-item active">
+    <span class="nav-item-icon">📋</span>
+    <span>Minhas Evoluções</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .evolucoes-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .evolucao-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .evolucao-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(8, 145, 178, 0.1);
+  }
+
+  .evolucao-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .medico-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0891b2;
+  }
+
+  .medico-avatar-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 24px;
+    border: 3px solid #0891b2;
+  }
+
+  .evolucao-header-info {
+    flex: 1;
+  }
+
+  .evolucao-medico {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .evolucao-especialidade {
+    font-size: 14px;
+    color: #0891b2;
+    font-weight: 500;
+  }
+
+  .evolucao-date {
+    font-size: 14px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .evolucao-sala {
+    font-size: 13px;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  .evolucao-content {
+    margin-top: 20px;
+  }
+
+  .evolucao-section {
+    margin-bottom: 20px;
+  }
+
+  .evolucao-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .evolucao-label {
+    font-weight: 700;
+    color: #0891b2;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .evolucao-text {
+    color: #334155;
+    line-height: 1.8;
+    font-size: 15px;
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    border-left: 4px solid #0891b2;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+
+  .empty-state-text {
+    color: #64748b;
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .evolucao-card {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .evolucao-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .medico-avatar, .medico-avatar-placeholder {
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+    }
+
+    .evolucao-medico {
+      font-size: 16px;
+    }
+
+    .evolucao-especialidade {
+      font-size: 13px;
+    }
+
+    .evolucao-text {
+      font-size: 14px;
+      padding: 12px;
+    }
+
+    .evolucao-label {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .evolucao-card {
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+    }
+
+    .evolucao-header {
+      padding-bottom: 16px;
+    }
+
+    .empty-state {
+      padding: 40px 15px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">📋 Minhas Evoluções Médicas</h1>
+  <p class="page-subtitle">Histórico completo das suas consultas e evoluções</p>
+</div>
+
+<div class="evolucoes-container">
+  {% if evolucoes %}
+    {% for evolucao in evolucoes %}
+    <div class="evolucao-card">
+      <div class="evolucao-header">
+        {% if evolucao.medico_nome %}
+          {% if evolucao.profile_photo %}
+            <img src="{{ url_for('static', filename='uploads/profile_photos/' + evolucao.profile_photo) }}" alt="{{ evolucao.medico_nome }}" class="medico-avatar">
+          {% else %}
+            <div class="medico-avatar-placeholder">{{ evolucao.medico_nome[0]|upper }}</div>
+          {% endif %}
+          <div class="evolucao-header-info">
+            <div class="evolucao-medico">Dr(a). {{ evolucao.medico_nome }}</div>
+            {% if evolucao.especialidade %}
+            <div class="evolucao-especialidade">{{ evolucao.especialidade }}</div>
+            {% endif %}
+            <div class="evolucao-date">📅 {{ evolucao.data|datetime_br }}</div>
+            {% if evolucao.sala_titulo %}
+            <div class="evolucao-sala">{{ evolucao.sala_titulo }}</div>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="medico-avatar-placeholder">?</div>
+          <div class="evolucao-header-info">
+            <div class="evolucao-medico">Médico não identificado</div>
+            <div class="evolucao-date">📅 {{ evolucao.data|datetime_br }}</div>
+            {% if evolucao.sala_titulo %}
+            <div class="evolucao-sala">{{ evolucao.sala_titulo }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="evolucao-content">
+        {% if evolucao.anotacoes %}
+        <div class="evolucao-section">
+          <div class="evolucao-label">📝 Anotações</div>
+          <div class="evolucao-text">{{ evolucao.anotacoes }}</div>
+        </div>
+        {% endif %}
+
+        {% if evolucao.diagnostico %}
+        <div class="evolucao-section">
+          <div class="evolucao-label">🔬 Diagnóstico</div>
+          <div class="evolucao-text">{{ evolucao.diagnostico }}</div>
+        </div>
+        {% endif %}
+
+        {% if evolucao.prescricao %}
+        <div class="evolucao-section">
+          <div class="evolucao-label">💊 Prescrição</div>
+          <div class="evolucao-text">{{ evolucao.prescricao }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">📝</div>
+      <p class="empty-state-text">Você ainda não possui evoluções médicas registradas.</p>
+    </div>
+  {% endif %}
+</div>
+
+<div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+  Desenvolvido por <strong style="color: #0891b2; font-weight: 600;">João Layon</strong> • Design UX/DX Premium
+</div>
+{% endblock %}

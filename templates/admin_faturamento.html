@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Dashboard de Faturamento - MedConnect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230891b2' width='100' height='100' rx='20'/><path fill='white' d='M50 25 L50 45 L30 45 L30 55 L50 55 L50 75 L60 75 L60 55 L80 55 L80 45 L60 45 L60 25 Z'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0891b2;
+      --primary-light: #06b6d4;
+      --primary-dark: #0e7490;
+      --secondary: #0284c7;
+      --accent: #22d3ee;
+      --bg-main: #f0f9ff;
+      --bg-card: #ffffff;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #bae6fd;
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg-main) 0%, #ffffff 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 20px 32px;
+      box-shadow: var(--shadow-lg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .header-icon {
+      font-size: 28px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .header-nav {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .btn-primary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      backdrop-filter: blur(10px);
+    }
+    
+    .btn-primary:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .page-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+    
+    .alert {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: var(--primary-dark);
+      border-left: 4px solid var(--primary);
+      animation: slideIn 0.4s ease-out;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    
+    .stat-change {
+      font-size: 13px;
+      color: var(--secondary);
+      font-weight: 600;
+    }
+    
+    .section {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .section:hover {
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .section-icon {
+      font-size: 24px;
+    }
+    
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    
+    thead {
+      background: linear-gradient(135deg, var(--bg-main) 0%, #e0f2fe 100%);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    
+    tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    tbody tr:hover {
+      background: var(--bg-main);
+      transform: scale(1.01);
+    }
+    
+    input[type="number"] {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      background: var(--bg-main);
+      width: 100%;
+      max-width: 120px;
+    }
+    
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(11, 95, 58, 0.1);
+      background: white;
+    }
+    
+    input[type="number"]:hover {
+      border-color: var(--secondary);
+    }
+    
+    .money {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 15px;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+    
+    footer strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    
+    @media (max-width: 1024px) {
+      .container {
+        padding: 24px;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      header {
+        padding: 16px 20px;
+      }
+
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+      
+      .header-title {
+        font-size: 18px;
+      }
+      
+      .header-nav {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .container {
+        padding: 16px;
+      }
+      
+      .page-title {
+        font-size: 26px;
+      }
+
+      .page-subtitle {
+        font-size: 15px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .stat-card {
+        padding: 20px;
+      }
+      
+      .stat-value {
+        font-size: 30px;
+      }
+      
+      .section {
+        padding: 20px;
+      }
+
+      .section-title {
+        font-size: 19px;
+      }
+      
+      th, td {
+        padding: 12px 10px;
+        font-size: 13px;
+      }
+      
+      input[type="number"] {
+        max-width: 90px;
+        padding: 10px;
+        font-size: 14px;
+      }
+      
+      .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      header {
+        padding: 14px 16px;
+      }
+
+      .header-title {
+        font-size: 16px;
+      }
+
+      .header-nav .btn {
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+
+      .container {
+        padding: 14px;
+      }
+
+      .page-title {
+        font-size: 22px;
+      }
+
+      .page-subtitle {
+        font-size: 14px;
+      }
+
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+      
+      .stat-value {
+        font-size: 26px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+      }
+
+      .stat-change {
+        font-size: 12px;
+      }
+
+      .section {
+        padding: 16px;
+      }
+
+      .section-title {
+        font-size: 17px;
+      }
+      
+      input[type="number"] {
+        max-width: 80px;
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      th {
+        font-size: 11px;
+      }
+
+      td {
+        font-size: 12px;
+      }
+    }
+    
+    .animate-number {
+      animation: countUp 1s ease-out;
+    }
+    
+    @keyframes countUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-content">
+    <div class="header-title">
+      <span class="header-icon">💰</span>
+      <div>
+        <div>Dashboard de Faturamento</div>
+        <div style="font-size: 13px; font-weight: 400; opacity: 0.9;">Administração</div>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="{{ url_for('admin_relatorio_fechamento') }}" class="btn btn-success">
+        📋 Fechamento de Caixa
+      </a>
+      <a href="{{ url_for('index') }}" class="btn btn-primary">
+        📊 Visão Geral
+      </a>
+      <a href="{{ url_for('logout') }}" class="btn btn-danger">
+        🚪 Sair
+      </a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <div class="page-title">Bem-vindo ao Dashboard Financeiro</div>
+  <div class="page-subtitle">Acompanhe as métricas e gerencie o faturamento da plataforma</div>
+  
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert">✓ {{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Total de Consultas</div>
+      <div class="stat-value animate-number">{{ totais.total_consultas or 0 }}</div>
+      <div class="stat-change">↗ Consultas realizadas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Receita Total</div>
+      <div class="stat-value animate-number">R$ {{ "%.2f"|format(totais.total_geral or 0) }}</div>
+      <div class="stat-change">↗ Faturamento bruto</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👨‍⚕️</div>
+      <div class="stat-label">Total Médicos</div>
+      <div class="stat-value animate-number">R$ {{ "%.2f"|format(totais.total_medicos or 0) }}</div>
+      <div class="stat-change">↗ Repasse aos profissionais</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏢</div>
+      <div class="stat-label">Total Admin</div>
+      <div class="stat-value animate-number">R$ {{ "%.2f"|format(totais.total_admin or 0) }}</div>
+      <div class="stat-change">↗ Receita da plataforma</div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">⚙️</span>
+      <h2 class="section-title">Configuração de Valores por Médico</h2>
+    </div>
+    {% for medico in medicos %}
+    <form id="form-{{ medico.medico_id }}" method="POST" action="{{ url_for('configurar_faturamento', medico_id=medico.medico_id) }}" style="display:none"></form>
+    {% endfor %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>👨‍⚕️ Médico</th>
+            <th>💰 Valor Consulta</th>
+            <th>📊 % Médico</th>
+            <th>🏢 % Admin</th>
+            <th>🎯 Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for medico in medicos %}
+          <tr>
+            <td style="font-weight: 600;">{{ medico.nome }}</td>
+            <td>
+              <input type="number" name="valor_consulta" step="0.01" min="0" value="{{ medico.valor_consulta or 150.00 }}" required form="form-{{ medico.medico_id }}" />
+            </td>
+            <td>
+              <input type="number" name="porcentagem_medico" step="0.01" min="0" max="100" value="{{ medico.porcentagem_medico or 70.00 }}" required form="form-{{ medico.medico_id }}" />
+            </td>
+            <td>
+              <input type="number" name="porcentagem_admin" step="0.01" min="0" max="100" value="{{ medico.porcentagem_admin or 30.00 }}" required form="form-{{ medico.medico_id }}" />
+            </td>
+            <td>
+              <button type="submit" class="btn btn-success" form="form-{{ medico.medico_id }}">💾 Salvar</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <h2 class="section-title">Histórico de Consultas</h2>
+    </div>
+    {% if consultas %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>📅 Data</th>
+            <th>👨‍⚕️ Médico</th>
+            <th>🧑 Paciente</th>
+            <th>💰 Valor Total</th>
+            <th>👨‍⚕️ Valor Médico</th>
+            <th>🏢 Valor Admin</th>
+            <th>📊 Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for consulta in consultas %}
+          <tr>
+            <td>{{ consulta.data[:16] }}</td>
+            <td style="font-weight: 600;">{{ consulta.medico_nome }}</td>
+            <td>{{ consulta.paciente_nome }}</td>
+            <td class="money">R$ {{ "%.2f"|format(consulta.valor_total) }}</td>
+            <td class="money">R$ {{ "%.2f"|format(consulta.valor_medico) }}</td>
+            <td class="money">R$ {{ "%.2f"|format(consulta.valor_admin) }}</td>
+            <td><span class="status-badge">{{ consulta.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">📊</div>
+      <p>Nenhuma consulta registrada ainda.</p>
+      <p style="font-size: 13px; margin-top: 8px;">As consultas aparecerão aqui assim que forem realizadas.</p>
+    </div>
+    {% endif %}
+  </div>
+  
+  <footer>
+    Desenvolvido por <strong>João Layon</strong> • Design UX/DX Premium
+  </footer>
+</div>
+</body>
+</html>

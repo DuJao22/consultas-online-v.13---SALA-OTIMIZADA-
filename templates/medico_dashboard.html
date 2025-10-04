@@ -1,0 +1,617 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Dashboard Médico{% endblock %}
+
+{% block breadcrumb %}<strong>Dashboard</strong> / Médico{% endblock %}
+
+{% block sidebar_nav %}
+<div class="nav-section">
+  <div class="nav-section-title">PRINCIPAL</div>
+  <a href="{{ url_for('medico_dashboard') }}" class="nav-item active">
+    <span class="nav-item-icon">📊</span>
+    <span>Dashboard</span>
+  </a>
+  <a href="{{ url_for('medico_faturamento') }}" class="nav-item">
+    <span class="nav-item-icon">💰</span>
+    <span>Faturamento</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">FINANCEIRO</div>
+  <a href="{{ url_for('medico_pagamentos') }}" class="nav-item" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); border: 2px solid #059669;">
+    <span class="nav-item-icon">💵</span>
+    <span>Meus Pagamentos</span>
+  </a>
+</div>
+
+<div class="nav-section">
+  <div class="nav-section-title">GESTÃO</div>
+  <a href="#cadastrarPaciente" class="nav-item" onclick="document.getElementById('modalPaciente').style.display='flex'; return false;">
+    <span class="nav-item-icon">🧑</span>
+    <span>Cadastrar Paciente</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="#" onclick="document.getElementById('modalPaciente').style.display='flex'; return false;" class="btn">
+  ➕ Novo Paciente
+</a>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  }
+
+  .stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .stat-card-title {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-card-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+
+  .stat-card-label {
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  .section {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+  }
+
+  .section-title {
+    color: #0f172a;
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .responsive-table {
+    width: 100%;
+  }
+
+  .responsive-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .responsive-table th {
+    background: #f8fafc;
+    color: #0891b2;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .responsive-table tbody tr {
+    transition: background 0.2s;
+  }
+
+  .responsive-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .responsive-table .data-cards {
+    display: none;
+  }
+
+  .data-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+  }
+
+  .data-card:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .data-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .data-card-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .data-card-label {
+    color: #0891b2;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    width: 40%;
+  }
+
+  .data-card-value {
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .data-card-value strong {
+    color: #0891b2;
+    font-weight: 700;
+  }
+
+  .data-card-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .data-card-actions .btn-sm {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: auto;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .modal-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #64748b;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover {
+    background: #f1f5f9;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #334155;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #0891b2;
+    box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+  }
+
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  }
+
+  .btn-success:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  }
+
+  .btn-purple:hover {
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+
+    .stat-card-value {
+      font-size: 32px;
+    }
+
+    .section {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .responsive-table table {
+      display: none;
+    }
+
+    .responsive-table .data-cards {
+      display: block;
+    }
+
+    .modal {
+      padding: 16px;
+    }
+
+    .modal-content {
+      padding: 24px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid {
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+
+    .stat-card-value {
+      font-size: 28px;
+    }
+
+    .stat-card-title {
+      font-size: 12px;
+    }
+
+    .section {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 17px;
+      margin-bottom: 12px;
+    }
+
+    .data-card {
+      padding: 14px;
+    }
+
+    .data-card-label {
+      font-size: 11px;
+    }
+
+    .data-card-value {
+      font-size: 13px;
+    }
+
+    .modal {
+      padding: 12px;
+    }
+
+    .modal-title {
+      font-size: 19px;
+    }
+
+    .btn-sm {
+      font-size: 13px;
+      padding: 10px 14px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Dashboard Médico</h1>
+  <p class="page-subtitle">Gestão completa dos seus pacientes</p>
+</div>
+
+<a href="{{ url_for('medico_pagamentos') }}" style="text-decoration: none; display: block;">
+  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 3px solid #059669; border-radius: 20px; padding: 28px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); cursor: pointer; transition: all 0.3s;" 
+       onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 28px rgba(16, 185, 129, 0.5)'"
+       onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 8px 20px rgba(16, 185, 129, 0.4)'">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+      <div style="flex: 1; min-width: 250px;">
+        <h2 style="color: white; font-size: 28px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
+          💰 Meus Pagamentos
+        </h2>
+        <p style="color: #d1fae5; font-size: 16px; margin: 0; font-weight: 500;">
+          ✓ Acompanhe seus fechamentos mensais e confirme os recebimentos aqui!
+        </p>
+      </div>
+      <div style="background: white; padding: 16px 28px; border-radius: 12px; font-size: 18px; font-weight: 700; color: #059669;">
+        Acessar →
+      </div>
+    </div>
+  </div>
+</a>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">PACIENTES</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🧑</div>
+    </div>
+    <div class="stat-card-value">{{ pacientes|length }}</div>
+    <div class="stat-card-label">Cadastrados</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">SALAS ATIVAS</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🎥</div>
+    </div>
+    <div class="stat-card-value">{{ pacientes|selectattr('sala_codigo')|list|length }}</div>
+    <div class="stat-card-label">Em andamento</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-header">
+      <div class="stat-card-title">SEM SALA</div>
+      <div class="stat-card-icon" style="background: linear-gradient(135deg, #0891b2, #06b6d4);">📋</div>
+    </div>
+    <div class="stat-card-value">{{ pacientes|rejectattr('sala_codigo')|list|length }}</div>
+    <div class="stat-card-label">Aguardando sala</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">🧑 Meus Pacientes</h2>
+  <div class="responsive-table">
+    {% if pacientes|length == 0 %}
+    <div class="empty-state">
+      Nenhum paciente cadastrado
+    </div>
+    {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Data Nasc.</th>
+          <th>Telefone</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for paciente in pacientes %}
+        <tr>
+          <td><strong>{{ paciente.nome }}</strong></td>
+          <td>{{ paciente.email }}</td>
+          <td>{{ paciente.data_nascimento or '-' }}</td>
+          <td>{{ paciente.telefone or '-' }}</td>
+          <td style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ url_for('paciente_detalhes', paciente_id=paciente.id) }}" class="btn btn-sm btn-purple">📋 Detalhes</a>
+            {% if paciente.sala_codigo %}
+              <a href="{{ url_for('sala', codigo=paciente.sala_codigo) }}" class="btn btn-sm btn-success">🎥 Sala</a>
+            {% else %}
+              <a href="{{ url_for('criar_sala_paciente', paciente_id=paciente.id) }}" class="btn btn-sm">✨ Criar Sala</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    
+    <div class="data-cards">
+      {% for paciente in pacientes %}
+      <div class="data-card">
+        <div class="data-card-row">
+          <div class="data-card-label">Nome</div>
+          <div class="data-card-value"><strong>{{ paciente.nome }}</strong></div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Email</div>
+          <div class="data-card-value">{{ paciente.email }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Data Nasc.</div>
+          <div class="data-card-value">{{ paciente.data_nascimento or '-' }}</div>
+        </div>
+        <div class="data-card-row">
+          <div class="data-card-label">Telefone</div>
+          <div class="data-card-value">{{ paciente.telefone or '-' }}</div>
+        </div>
+        <div class="data-card-actions">
+          <a href="{{ url_for('paciente_detalhes', paciente_id=paciente.id) }}" class="btn btn-sm btn-purple">📋 Ver Detalhes</a>
+          {% if paciente.sala_codigo %}
+            <a href="{{ url_for('sala', codigo=paciente.sala_codigo) }}" class="btn btn-sm btn-success">🎥 Entrar na Sala</a>
+          {% else %}
+            <a href="{{ url_for('criar_sala_paciente', paciente_id=paciente.id) }}" class="btn btn-sm">✨ Criar Sala de Consulta</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="modal" id="modalPaciente" onclick="if(event.target === this) this.style.display='none'">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">🧑 Cadastrar Novo Paciente</h3>
+      <button class="modal-close" onclick="document.getElementById('modalPaciente').style.display='none'">&times;</button>
+    </div>
+    <form method="POST" action="{{ url_for('medico_cadastrar_paciente') }}">
+      <div class="form-group">
+        <label>Nome Completo</label>
+        <input type="text" name="nome" placeholder="Maria Silva" required />
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" name="email" placeholder="paciente@exemplo.com" required />
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" name="senha" placeholder="••••••••" required />
+      </div>
+      <div class="form-group">
+        <label>Data de Nascimento</label>
+        <input type="date" name="data_nascimento" />
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="tel" name="telefone" placeholder="(11) 98765-4321" />
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center;">✨ Cadastrar Paciente</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Fechar modal com ESC
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    document.getElementById('modalPaciente').style.display = 'none';
+  }
+});
+</script>
+
+<div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+  Desenvolvido por <strong style="color: #0891b2; font-weight: 600;">João Layon</strong> • Design UX/DX Premium
+</div>
+{% endblock %}
